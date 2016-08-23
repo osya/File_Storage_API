@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from bottle import Bottle, request
+from bottle import Bottle, request, response
 from bottleship import BottleShip
 import binascii
 import os
@@ -11,6 +11,9 @@ app.tokens = {}
 @app.route('/get_token')
 def get_token():
     ip = request.query.ip
+    if not ip:
+        response.status = 400
+        return 'IP parameter required'
     if ip in app.tokens:
         return app.tokens[ip]
     else:

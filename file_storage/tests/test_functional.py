@@ -7,12 +7,21 @@ from file_storage.app import create_app
 
 class TestRegistering(unittest.TestCase):
 
-    def test_get_token(self):
+    def test_get_token_with_real_ip(self):
         app = TestApp(create_app())
         res = app.get('/get_token', {'ip': '127.0.0.1'})
-        assert 200 == res.status_code
-        token = res.json_body['Token']
+        self.assertEqual(res.status_code, 200)
+        token = res.json['Token']
         assert token is not None
+
+    def test_get_token_with_empty_ip(self):
+        app = TestApp(create_app())
+        res = app.get('/get_token', {'ip': ''}, expect_errors=True)
+        self.assertEqual(res.status_code, 400)
+
+        app = TestApp(create_app())
+        res = app.get('/get_token', expect_errors=True)
+        self.assertEqual(res.status_code, 400)
 
 
 # def test_functional_login_logout():
