@@ -1,16 +1,22 @@
 # -*- coding: utf-8 -*-
 from bottle import Bottle, request
 from bottleship import BottleShip
-from bottle_sqlite import SQLitePlugin
+import binascii
+import os
 
 app = Bottle()
-app.install(SQLitePlugin())
+app.tokens = {}
 
 
 @app.route('/get_token')
-def get_token(db):
+def get_token():
     ip = request.query.ip
-    return 'token'
+    if ip in app.tokens:
+        return app.tokens[ip]
+    else:
+        token = binascii.hexlify(os.urandom(8))
+        app.tokens[ip] = token
+        return {'Token': token}
 
 
 bs = BottleShip()
