@@ -14,12 +14,18 @@ def get_token():
     if not ip:
         response.status = 400
         return 'IP parameter required'
-    if ip in app.tokens:
-        return app.tokens[ip]
-    else:
-        token = binascii.hexlify(os.urandom(8))
-        app.tokens[ip] = token
-        return {'Token': token}
+    if ip not in app.tokens:
+        app.tokens[ip] = binascii.hexlify(os.urandom(8))
+    return {'Token': app.tokens[ip]}
+
+
+@app.route('/import_file')
+def import_file():
+    token = request.query.token
+    if not token or token not in app.tokens.values():
+        response.status = 401
+        return 'Wrong token'
+    pass
 
 
 bs = BottleShip()

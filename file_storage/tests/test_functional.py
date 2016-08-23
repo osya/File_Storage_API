@@ -1,42 +1,36 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import unittest
-from webtest import TestApp
 from file_storage.app import create_app
+import pytest
 
 
-class TestRegistering(unittest.TestCase):
+# noinspection PyClassHasNoInit
+class TestRegistering:
 
-    def test_get_token_with_real_ip(self):
-        app = TestApp(create_app())
-        res = app.get('/get_token', {'ip': '127.0.0.1'})
-        self.assertEqual(res.status_code, 200)
+    def test_get_token_with_real_ip(self, test_app):
+        res = test_app.get('/get_token', {'ip': '127.0.0.1'})
+        assert 200 == res.status_code
         token = res.json['Token']
         assert token is not None
 
-    def test_get_token_with_empty_ip(self):
-        app = TestApp(create_app())
-        res = app.get('/get_token', {'ip': ''}, expect_errors=True)
-        self.assertEqual(res.status_code, 400)
+    def test_get_token_with_empty_ip(self, test_app):
+        res = test_app.get('/get_token', {'ip': ''}, expect_errors=True)
+        assert 400 == res.status_code
 
-        app = TestApp(create_app())
-        res = app.get('/get_token', expect_errors=True)
-        self.assertEqual(res.status_code, 400)
+        res = test_app.get('/get_token', expect_errors=True)
+        assert 400 == res.status_code
 
 
-# def test_functional_login_logout():
-#     app = TestApp(file_storage.app)
-#
-#     app.post('/login', {'user': 'foo', 'pass': 'bar'}) # log in and get a cookie
-#
-#     assert app.get('/admin').status == '200 OK'        # fetch a page successfully
-#
-#     app.get('/logout')                                 # log out
-#     app.reset()                                        # drop the cookie
-#
-#     # fetch the same page, unsuccessfully
-#     assert app.get('/admin').status == '401 Unauthorized'
+# noinspection PyClassHasNoInit
+class TestImportFile:
 
+    def test_import_file_with_correct_token(self, test_app):
+        res = test_app.get('/get_token', {'ip': '127.0.0.1'})
+        res = test_app.get('/import_file', {'token': res.json['Token']})
+        assert 200 == res.status_code
 
-# def test_functional_index():
-#     assert file_storage.index() == 'Hi!'
+    def test_import_file_with_wrong_token(self, test_app):
+        res = test_app.get('/import_file', {'token': ''}, expect_errors=True)
+        assert 401 == res.status_code
+        res = test_app.get('/import_file', expect_errors=True)
+        assert 401 == res.status_code
