@@ -4,8 +4,13 @@ from bottleship import BottleShip
 import binascii
 import os
 
+
+class TokenManager(dict):
+    def add(self, ip):
+        self[ip] = binascii.hexlify(os.urandom(8))
+
 app = Bottle()
-app.tokens = {}
+app.tokens = TokenManager()
 
 
 @app.route('/get_token')
@@ -15,7 +20,7 @@ def get_token():
         response.status = 400
         return 'IP parameter required'
     if ip not in app.tokens:
-        app.tokens[ip] = binascii.hexlify(os.urandom(8))
+        app.tokens.add(ip)
     return {'Token': app.tokens[ip]}
 
 
