@@ -1,8 +1,17 @@
 # -*- coding: utf-8 -*-
-from bottle import Bottle
+from bottle import Bottle, request
 from bottleship import BottleShip
+from bottle_sqlite import SQLitePlugin
 
-home_app = Bottle()
+app = Bottle()
+app.install(SQLitePlugin())
+
+
+@app.route('/get_token')
+def get_token(db):
+    ip = request.query.ip
+    return 'token'
+
 
 bs = BottleShip()
 bs.route('/register', method=('GET', 'POST'), callback=bs.register)
@@ -15,6 +24,6 @@ def testapi(bottleship_user_record):
     return "Hello, %s!" % bottleship_user_record.get('Username')
 
 
-@home_app.route('/')
+@app.route('/')
 def index():
     return 'Hi!'

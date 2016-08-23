@@ -3,16 +3,11 @@
 # from __future__ import unicode_literals
 import os
 import click
-from bottle import static_file, run
+from bottle import run
 from file_storage import settings
 from file_storage.app import create_app
 
 app = create_app()
-
-
-@app.wrap_app.route('/assets/<path:path>', name='assets')
-def assets(path):
-    yield static_file(path, root=settings.STATIC_PATH)
 
 
 @click.group()
@@ -43,4 +38,6 @@ def test():
 
 if __name__ == "__main__":
     # cmds()
+    import bottle
+    bottle.debug(True)
     test()
