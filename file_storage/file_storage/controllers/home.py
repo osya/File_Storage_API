@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from bottle import Bottle, request, response
+from bottle import Bottle, request, response, HTTPResponse
 from bottleship import BottleShip
 import binascii
 import os
@@ -20,9 +20,12 @@ class TokenManager(dict):
         }
         return token
 
+    def check_token(self, token):
+        return token and token in self and time.time() <= float(self[token].get('Expiry', '0'))
+
 
 app = Bottle()
-app.tokens = TokenManager(token_lifetime_seconds=1)
+app.tokens = TokenManager(token_lifetime_seconds=5)
 
 
 @app.route('/get_token')
@@ -41,12 +44,23 @@ def get_token():
     return {'Token': token}
 
 
-@app.route('/import_file')
+def require_auth(path=None, method='GET', callback=None, name=None, apply_=None, skip=None, **config):
+    def decorated(f):
+        def route_do(**kwargs):
+            callback_success = f or (lambda: HTTPResponse(status=200, body='OK'))
+            if not app.tokens.check_token(request.query.token):
+                response.status = 403
+                return 'Auth error: Provided token does not exist or has expired.'
+            return callback_success(**kwargs)
+
+        return app.route(path, method, route_do, name, apply_, skip, **config)
+
+    return decorated(callback) if callback else decorated
+
+
+@require_auth('/import_file')
 def import_file():
-    token = request.query.token
-    if not token or token not in app.tokens or time.time() > float(app.tokens[token].get('Expiry', '0')):
-        response.status = 403
-        return 'Auth error: Provided token does not exist or has expired.'
+    pass
 
 
 bs = BottleShip()
