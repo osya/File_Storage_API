@@ -6,17 +6,17 @@ import time
 # noinspection PyClassHasNoInit
 class TestRegistering:
 
-    def test_get_token_with_real_ip(self, test_app, test_ip):
-        res = test_app.get('/get_token', {'ip': test_ip[0]})
+    def test_register_with_real_ip(self, test_app, test_ip):
+        res = test_app.get('/register', {'ip': test_ip[0]})
         assert 200 == res.status_code
         token = res.json['Token']
         assert token is not None
 
-    def test_get_token_with_empty_ip(self, test_app):
-        res = test_app.get('/get_token', {'ip': ''}, expect_errors=True)
+    def test_register_with_empty_ip(self, test_app):
+        res = test_app.get('/register', {'ip': ''}, expect_errors=True)
         assert 400 == res.status_code
 
-        res = test_app.get('/get_token', expect_errors=True)
+        res = test_app.get('/register', expect_errors=True)
         assert 400 == res.status_code
 
 
