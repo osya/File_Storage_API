@@ -1,3 +1,4 @@
 bottle
 click
-beaker
+beaker==1.8.0
+webtest

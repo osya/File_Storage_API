@@ -1,25 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+# from __future__ import unicode_literals
 import os
 import click
-from bottle import static_file, Bottle, run, TEMPLATE_PATH
-from beaker.middleware import SessionMiddleware
-
+from bottle import static_file, run
 from file_storage import settings
-from file_storage.routes import Routes
+from file_storage.app import create_app
 
-
-TEMPLATE_PATH.insert(0, settings.TEMPLATE_PATH)
-session_opts = {
-    'session.type': 'file',
-    'session.auto': True
-}
-
-app = SessionMiddleware(Bottle(), session_opts)
-
-# Bottle Routes
-app.wrap_app.merge(Routes)
+app = create_app()
 
 
 @app.wrap_app.route('/assets/<path:path>', name='assets')
@@ -44,14 +32,15 @@ def runserver(port, ip, debug):
     run(app=app, host=ip, port=port, debug=debug, reloader=debug)
 
 
-@cmds.command()
+# @cmds.command()
 def test():
     import unittest
     loader = unittest.TestLoader()
     tests = loader.discover('tests')
-    testRunner = unittest.runner.TextTestRunner()
-    testRunner.run(tests)
+    test_runner = unittest.runner.TextTestRunner()
+    test_runner.run(tests)
 
 
 if __name__ == "__main__":
-    cmds()
+    # cmds()
+    test()
