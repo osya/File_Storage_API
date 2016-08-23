@@ -23,5 +23,4 @@ def test_app(app):
 def test_ip(app):
     """A user for the tests."""
     ip = '127.0.0.1'
-    app.tokens.add(ip)
-    return ip, app.tokens[ip]
+    return ip, app.tokens.add(ip)

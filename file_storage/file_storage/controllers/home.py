@@ -3,14 +3,26 @@ from bottle import Bottle, request, response
 from bottleship import BottleShip
 import binascii
 import os
+import time
 
 
 class TokenManager(dict):
+    def __init__(self, token_lifetime_seconds=3600, *args, **kwargs):
+        super(TokenManager, self).__init__(*args, **kwargs)
+        self._token_lifetime_seconds = token_lifetime_seconds
+
     def add(self, ip):
-        self[ip] = binascii.hexlify(os.urandom(8))
+        token = binascii.hexlify(os.urandom(8))
+        # TODO: Check whether this token already exists
+        self[token] = {
+            'Expiry': str(time.time() + self._token_lifetime_seconds),
+            'IP': ip
+        }
+        return token
+
 
 app = Bottle()
-app.tokens = TokenManager()
+app.tokens = TokenManager(token_lifetime_seconds=1)
 
 
 @app.route('/get_token')
@@ -19,18 +31,22 @@ def get_token():
     if not ip:
         response.status = 400
         return 'IP parameter required'
-    if ip not in app.tokens:
-        app.tokens.add(ip)
-    return {'Token': app.tokens[ip]}
+    token = None
+    for key, value in app.tokens.iteritems():
+        if ip == value['IP']:
+            token = key
+            break
+    if not token:
+        token = app.tokens.add(ip)
+    return {'Token': token}
 
 
 @app.route('/import_file')
 def import_file():
     token = request.query.token
-    if not token or token not in app.tokens.values():
-        response.status = 401
-        return 'Wrong token'
-    pass
+    if not token or token not in app.tokens or time.time() > float(app.tokens[token].get('Expiry', '0')):
+        response.status = 403
+        return 'Auth error: Provided token does not exist or has expired.'
 
 
 bs = BottleShip()
