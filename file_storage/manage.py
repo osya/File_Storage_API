@@ -6,7 +6,9 @@ import click
 from bottle import run
 from file_storage import settings
 from file_storage.app import create_app
-
+from multiprocessing import Process
+import time
+import datetime as dt
 
 app = create_app()
 
@@ -34,6 +36,22 @@ def test():
     return pytest.main([settings.TEST_PATH, '--verbose'])
 
 
+def file_removal(path):
+    while 1:
+        cur_date = dt.datetime.now().date()
+        for dirpath, _, filenames in os.walk(path):
+            for file_name in filenames:
+                exp_date = dt.datetime.strptime(file_name.split('.')[0].split('_')[1], '%Y-%m-%d').date()
+                if cur_date > exp_date:
+                    file_path = os.path.join(dirpath, file_name)
+                    os.remove(file_path)
+
+        time.sleep(60)
+
+
 if __name__ == "__main__":
+    frp = Process(target=file_removal, args=(settings.STATIC_PATH,))
+    frp.start()
+
     # cmds()
     test()
