@@ -57,6 +57,12 @@ class TestUploadDownloadFile:
             with open(file_path, 'wb') as out_file:
                 out_file.write(res.body)
 
+    def test_download_file_with_wrong_key(self, test_app, test_ip):
+        res = test_app.get('/download', {'token': test_ip[1], 'Key': ''}, expect_errors=True)
+        assert 400 == res.status_code
+        res = test_app.get('/download', {'token': test_ip[1]}, expect_errors=True)
+        assert 400 == res.status_code
+
     # def test_upload_file_with_wrong_expired_date(self, test_app, test_ip):
     #     res = test_app.post('/upload', {'token': test_ip[1], 'expired_date': ''}, expect_errors=True)
     #     assert 400 == res.status_code
