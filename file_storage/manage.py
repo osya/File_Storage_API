@@ -7,8 +7,6 @@ from bottle import run
 from file_storage import settings
 from file_storage.app import create_app
 
-HERE = os.path.abspath(os.path.dirname(__file__))
-TEST_PATH = os.path.join(HERE, 'tests')
 
 app = create_app()
 
@@ -33,7 +31,7 @@ def runserver(port, ip, debug):
 # @cmds.command()
 def test():
     import pytest
-    return pytest.main([TEST_PATH, '--verbose'])
+    return pytest.main([settings.TEST_PATH, '--verbose'])
 
 
 if __name__ == "__main__":

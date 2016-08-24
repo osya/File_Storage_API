@@ -36,7 +36,8 @@ class IPAuth(Bottle):
         def decorated(f):
             def route_do(**kwargs):
                 callback_success = f or (lambda: HTTPResponse(status=200, body='OK'))
-                if not self.tokens.check_token(request.query.token):
+                token = request.params.dict.get('token')
+                if not token or not self.tokens.check_token(token[0]):
                     response.status = 403
                     return 'Auth error: Provided token does not exist or has expired.'
                 return callback_success(**kwargs)
