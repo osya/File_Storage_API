@@ -23,16 +23,16 @@ import datetime as dt
 
 # noinspection PyClassHasNoInit
 class TestUploadFile:
-    # def test_upload_file_with_correct_token(self, test_app, test_ip):
-    #     with open('README.rst', 'rb') as f:
-    #         res = test_app.post(
-    #                 '/upload',
-    #                 {
-    #                     'token': test_ip[1],
-    #                     'expired_date': dt.datetime.now().date()
-    #                 },
-    #                 upload_files=[('upload', 'README.rst', f.read())])
-    #     assert 200 == res.status_code
+    def test_upload_file_with_correct_token(self, test_app, test_ip):
+        with open('README.rst', 'rb') as f:
+            res = test_app.post(
+                    '/upload',
+                    {
+                        'token': test_ip[1],
+                        'expired_date': dt.datetime.now().date()
+                    },
+                    upload_files=[('upload', 'README.rst', f.read())])
+        assert 200 == res.status_code
 
     def test_upload_file_with_wrong_expired_date(self, test_app, test_ip):
         res = test_app.post('/upload', {'token': test_ip[1], 'expired_date': ''}, expect_errors=True)

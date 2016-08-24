@@ -3,6 +3,7 @@ from bottle import request, response
 from file_storage.ipauth import IPAuth
 import os
 from file_storage import settings
+import uuid
 
 app = IPAuth(token_lifetime_seconds=5)
 
@@ -36,14 +37,15 @@ def upload():
         response.status = 400
         return 'expired_date is required'
 
+    key = uuid.uuid4()
     save_path = settings.STATIC_PATH
     if not os.path.exists(save_path):
         os.makedirs(save_path)
     name, ext = f.filename.split('.')
-    file_path = os.path.join(save_path, '%s_%s.%s' % (name, expired_date, ext))
+    file_path = os.path.join(save_path, '%s_%s.%s' % (key, expired_date, ext))
     f.save(file_path, overwrite=True)
     response.status = 200
-    return "File successfully saved to '{0}'.".format(save_path)
+    return {'Key': str(key)}
 
 
 @app.route('/')
