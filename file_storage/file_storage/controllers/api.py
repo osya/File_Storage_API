@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
-from bottle import request, response
+from bottle import request, response, static_file
 from file_storage.ipauth import IPAuth
 import os
 from file_storage import settings
 import uuid
 import zipfile
+import glob
 
 app = IPAuth(token_lifetime_seconds=5)
 
@@ -50,6 +51,26 @@ def upload():
         zf.close()
     response.status = 200
     return {'Key': str(key)}
+
+
+@app.require_auth('/download', method='GET')
+def download():
+    key = request.params.dict.get('Key')
+    if key:
+        key = key[0]
+        if not key:
+            response.status = 400
+            return 'File Key is required'
+    else:
+        response.status = 400
+        return 'File Key is required'
+
+    for name in glob.glob(os.path.join(settings.STATIC_PATH, '%s_*.zip' % key)):
+        filename = os.path.basename(name)
+        return static_file(filename, root=settings.STATIC_PATH, download=filename)
+
+    response.status = 400
+    return 'Wrong File Key'
 
 
 @app.route('/')
