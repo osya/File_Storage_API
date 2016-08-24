@@ -48,6 +48,7 @@ class TestUploadDownloadFile:
                     m = re.search(r'''^.*filename="(.*)"$''', item);
                     if m:
                         filename = m.group(1)
+                        break
 
         assert filename
 

@@ -6,6 +6,8 @@ from file_storage import settings
 import uuid
 import zipfile
 import glob
+from StringIO import StringIO
+from fdsend import send_file
 
 app = IPAuth(token_lifetime_seconds=5)
 
@@ -66,8 +68,9 @@ def download():
         return 'File Key is required'
 
     for name in glob.glob(os.path.join(settings.STATIC_PATH, '%s_*.zip' % key)):
-        filename = os.path.basename(name)
-        return static_file(filename, root=settings.STATIC_PATH, download=filename)
+        zf = zipfile.ZipFile(name)
+        unp = {name: zf.read(name) for name in zf.namelist()}.items()[0]
+        return send_file(StringIO(unp[1]), filename=unp[0], attachment=True)
 
     response.status = 400
     return 'Wrong File Key'
