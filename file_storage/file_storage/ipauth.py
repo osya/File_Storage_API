@@ -4,6 +4,8 @@ import binascii
 import os
 import time
 from bottle import Bottle, HTTPResponse, request, response
+from functools import wraps
+from inspect import formatargspec, getargspec
 
 
 class TokenManager(dict):
@@ -33,15 +35,19 @@ class IPAuth(Bottle):
         self.tokens = token_manager or TokenManager(token_lifetime_seconds=self._token_lifetime_seconds)
 
     def require_auth(self, path=None, method='GET', callback=None, name=None, apply_=None, skip=None, **config):
+        # Inspired by https://emptysqua.re/blog/copying-a-python-functions-signature/
         def decorated(f):
-            def route_do(**kwargs):
+            def route_do(*args, **kwargs):
                 callback_success = f or (lambda: HTTPResponse(status=200, body='OK'))
                 token = request.params.dict.get('token')
                 if not token or not self.tokens.check_token(token[0]):
                     response.status = 403
                     return 'Auth error: Provided token does not exist or has expired.'
-                return callback_success(**kwargs)
+                return callback_success(*args, **kwargs)
 
-            return self.route(path, method, route_do, name, apply_, skip, **config)
+            formatted_args = formatargspec(*getargspec(f))
+            fn_def = 'lambda %s: route_do%s' % (formatted_args.lstrip('(').rstrip(')'), formatted_args)
+            return self.route(path, method, wraps(f)(eval(fn_def, {'route_do': route_do})), name, apply_, skip,
+                              **config)
 
         return decorated(callback) if callback else decorated

@@ -4,3 +4,4 @@ beaker==1.8.0
 webtest
 pytest==3.0.0
 bottle-fdsend==0.1.1
+bottle-sqlite==0.1.3

@@ -1,23 +1,25 @@
 # -*- coding: utf-8 -*-
-from bottle import request, response, static_file
-from file_storage.ipauth import IPAuth
+import datetime as dt
+import glob
 import os
-from file_storage import settings
 import uuid
 import zipfile
-import glob
 from StringIO import StringIO
+from bottle import request, HTTPError
+from bottle_sqlite import SQLitePlugin
 from fdsend import send_file
+from file_storage import settings
+from file_storage.ipauth import IPAuth
 
 app = IPAuth(token_lifetime_seconds=5)
+app.install(SQLitePlugin(dbfile=os.path.abspath(os.path.join(settings.PROJECT_PATH, '..', settings.SQLITE_FILE_NAME))))
 
 
 @app.route('/register')
 def register():
     ip = request.query.ip
     if not ip:
-        response.status = 400
-        return 'IP parameter required'
+        return HTTPError(400, 'IP parameter required')
     token = None
     for key, value in app.tokens.iteritems():
         if ip == value['IP']:
@@ -29,17 +31,15 @@ def register():
 
 
 @app.require_auth('/upload', method='POST')
-def upload():
+def upload(db):
     f = request.files.get('upload')
     expired_date = request.params.dict.get('expired_date')
     if expired_date:
         expired_date = expired_date[0]
         if not expired_date:
-            response.status = 400
-            return 'expired_date is required'
+            return HTTPError(400, 'expired_date is required')
     else:
-        response.status = 400
-        return 'expired_date is required'
+        return HTTPError(400, 'expired_date is required')
 
     key = uuid.uuid4()
     save_path = settings.STATIC_PATH
@@ -51,32 +51,31 @@ def upload():
         zf.writestr(f.filename, f.file.read())
     finally:
         zf.close()
-    response.status = 200
+
+    db.execute('INSERT INTO access_log (file_key) VALUES (?)', (str(key), ))
     return {'Key': str(key)}
 
 
 @app.require_auth('/download', method='GET')
-def download():
+def download(db):
     key = request.params.dict.get('Key')
     if key:
         key = key[0]
         if not key:
-            response.status = 400
-            return 'File Key is required'
+            return HTTPError(400, 'File Key is required')
     else:
-        response.status = 400
-        return 'File Key is required'
+        return HTTPError(400, 'File Key is required')
 
     for name in glob.glob(os.path.join(settings.STATIC_PATH, '%s_*.zip' % key)):
         zf = zipfile.ZipFile(name)
         unp = {name: zf.read(name) for name in zf.namelist()}.items()[0]
         return send_file(StringIO(unp[1]), filename=unp[0], attachment=True)
 
-    response.status = 400
-    return 'Wrong File Key'
+    db.execute('UPDATE access_log SET access_date = ? WHERE file_key = ?', (dt.datetime.utcnow(), str(key)))
+
+    return HTTPError(400, 'Wrong File Key')
 
 
 @app.route('/')
 def index():
-    response.status = 200
-    return
+    return ''

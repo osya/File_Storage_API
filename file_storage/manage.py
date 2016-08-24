@@ -5,12 +5,10 @@ import os
 import click
 from bottle import run
 from file_storage import settings
-from file_storage.app import create_app
+from file_storage.controllers.api import app
 from multiprocessing import Process
 import time
 import datetime as dt
-
-app = create_app()
 
 
 @click.group()
@@ -37,8 +35,9 @@ def test():
 
 
 def file_removal(path):
+    # TODO: When deleting file delete corresponding record from SQLite database
     while 1:
-        cur_date = dt.datetime.now().date()
+        cur_date = dt.datetime.utcnow().date()
         for dirpath, _, filenames in os.walk(path):
             for file_name in filenames:
                 exp_date = dt.datetime.strptime(file_name.split('.')[0].split('_')[1], '%Y-%m-%d').date()
@@ -52,6 +51,9 @@ def file_removal(path):
 if __name__ == "__main__":
     frp = Process(target=file_removal, args=(settings.STATIC_PATH,))
     frp.start()
+
+    import bottle
+    bottle.debug(mode=True)
 
     # cmds()
     test()
