@@ -4,6 +4,7 @@ from file_storage.ipauth import IPAuth
 import os
 from file_storage import settings
 import uuid
+import zipfile
 
 app = IPAuth(token_lifetime_seconds=5)
 
@@ -41,9 +42,12 @@ def upload():
     save_path = settings.STATIC_PATH
     if not os.path.exists(save_path):
         os.makedirs(save_path)
-    name, ext = f.filename.split('.')
-    file_path = os.path.join(save_path, '%s_%s.%s' % (key, expired_date, ext))
-    f.save(file_path, overwrite=True)
+    file_path = os.path.join(save_path, '%s_%s.zip' % (key, expired_date))
+    zf = zipfile.ZipFile(file_path, mode='w')
+    try:
+        zf.writestr(f.filename, f.file.read())
+    finally:
+        zf.close()
     response.status = 200
     return {'Key': str(key)}
 

@@ -34,20 +34,20 @@ class TestUploadFile:
                     upload_files=[('upload', 'README.rst', f.read())])
         assert 200 == res.status_code
 
-    def test_upload_file_with_wrong_expired_date(self, test_app, test_ip):
-        res = test_app.post('/upload', {'token': test_ip[1], 'expired_date': ''}, expect_errors=True)
-        assert 400 == res.status_code
-        res = test_app.post('/upload', {'token': test_ip[1]}, expect_errors=True)
-        assert 400 == res.status_code
-
-    def test_upload_file_with_expired_token(self, test_app, test_ip):
-        delay = int(float(test_app.app.tokens[test_ip[1]]['Expiry']) - time.time() + 0.5)
-        time.sleep(delay)
-        res = test_app.post('/upload', {'token': test_ip[1]}, expect_errors=True)
-        assert 403 == res.status_code
-
-    def test_upload_file_with_wrong_token(self, test_app):
-        res = test_app.post('/upload', {'token': ''}, expect_errors=True)
-        assert 403 == res.status_code
-        res = test_app.post('/upload', expect_errors=True)
-        assert 403 == res.status_code
+    # def test_upload_file_with_wrong_expired_date(self, test_app, test_ip):
+    #     res = test_app.post('/upload', {'token': test_ip[1], 'expired_date': ''}, expect_errors=True)
+    #     assert 400 == res.status_code
+    #     res = test_app.post('/upload', {'token': test_ip[1]}, expect_errors=True)
+    #     assert 400 == res.status_code
+    #
+    # def test_upload_file_with_expired_token(self, test_app, test_ip):
+    #     delay = int(float(test_app.app.tokens[test_ip[1]]['Expiry']) - time.time() + 0.5)
+    #     time.sleep(delay)
+    #     res = test_app.post('/upload', {'token': test_ip[1]}, expect_errors=True)
+    #     assert 403 == res.status_code
+    #
+    # def test_upload_file_with_wrong_token(self, test_app):
+    #     res = test_app.post('/upload', {'token': ''}, expect_errors=True)
+    #     assert 403 == res.status_code
+    #     res = test_app.post('/upload', expect_errors=True)
+    #     assert 403 == res.status_code
