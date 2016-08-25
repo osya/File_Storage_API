@@ -52,7 +52,6 @@ def upload(db):
     finally:
         zf.close()
 
-    db.execute('INSERT INTO access_log (file_key) VALUES (?)', (str(key), ))
     return {'Key': str(key)}
 
 
@@ -60,7 +59,7 @@ def upload(db):
 def download(db):
     key = request.params.dict.get('Key')
     if key:
-        key = key[0]
+        key = str(key[0])
         if not key:
             return HTTPError(400, 'File Key is required')
     else:
@@ -69,9 +68,12 @@ def download(db):
     for name in glob.glob(os.path.join(settings.STATIC_PATH, '%s_*.zip' % key)):
         zf = zipfile.ZipFile(name)
         unp = {name: zf.read(name) for name in zf.namelist()}.items()[0]
+        cur_date = dt.datetime.utcnow()
+        db.execute('INSERT INTO access_log (file_key, access_date) VALUES (?, ?)', (key, cur_date))
+        db.execute('''UPDATE access_log SET last_access_date =
+                        (SELECT MAX(access_date) FROM access_log WHERE file_key = ?)
+                      WHERE file_key = ?''', (key, key))
         return send_file(StringIO(unp[1]), filename=unp[0], attachment=True)
-
-    db.execute('UPDATE access_log SET access_date = ? WHERE file_key = ?', (dt.datetime.utcnow(), str(key)))
 
     return HTTPError(400, 'Wrong File Key')
 
