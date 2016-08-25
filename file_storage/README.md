@@ -2,7 +2,6 @@
 File storage (HTTP storage) API with IP Auth based on Bottle & SQLite
 
 ## Installation
-
 1. Clone project on your machine
 2. ```bash virtualenv env```
 3. Activate virtual env:
@@ -14,3 +13,6 @@ File storage (HTTP storage) API with IP Auth based on Bottle & SQLite
 
 ## Tests
 ```bash python manage.py test```
+
+## Usage
+See in tests
