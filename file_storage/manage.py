@@ -28,7 +28,7 @@ def runserver(port, ip, debug):
     run(app=app, host=ip, port=port, debug=debug, reloader=debug)
 
 
-# @cmds.command()
+@cmds.command()
 def test():
     import pytest
     return pytest.main([settings.TEST_PATH, '--verbose'])
@@ -52,8 +52,4 @@ if __name__ == "__main__":
     frp = Process(target=file_removal, args=(settings.STATIC_PATH,))
     frp.start()
 
-    import bottle
-    bottle.debug(mode=True)
-
-    # cmds()
-    test()
+    cmds()

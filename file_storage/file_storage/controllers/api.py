@@ -11,7 +11,7 @@ from fdsend import send_file
 from file_storage import settings
 from file_storage.ipauth import IPAuth
 
-app = IPAuth(token_lifetime_seconds=5)
+app = IPAuth()
 app.install(SQLitePlugin(dbfile=os.path.abspath(os.path.join(settings.PROJECT_PATH, '..', settings.SQLITE_FILE_NAME))))
 
 
@@ -41,10 +41,13 @@ def upload(db):
     else:
         return HTTPError(400, 'expired_date is required')
 
-    key = uuid.uuid4()
-    save_path = settings.STATIC_PATH
+    save_path = os.path.join(
+            settings.STATIC_PATH,
+            request.params.dict.get('token')[0],
+            str(dt.datetime.utcnow().date()))
     if not os.path.exists(save_path):
         os.makedirs(save_path)
+    key = uuid.uuid4()
     file_path = os.path.join(save_path, '%s_%s.zip' % (key, expired_date))
     zf = zipfile.ZipFile(file_path, mode='w')
     try:
@@ -65,7 +68,11 @@ def download(db):
     else:
         return HTTPError(400, 'File Key is required')
 
-    for name in glob.glob(os.path.join(settings.STATIC_PATH, '%s_*.zip' % key)):
+    for name in glob.glob(os.path.join(
+            settings.STATIC_PATH,
+            request.params.dict.get('token')[0],
+            '*',
+            '%s_*.zip' % key)):
         zf = zipfile.ZipFile(name)
         unp = {name: zf.read(name) for name in zf.namelist()}.items()[0]
         cur_date = dt.datetime.utcnow()
