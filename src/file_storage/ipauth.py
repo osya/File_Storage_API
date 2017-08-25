@@ -14,7 +14,7 @@ class TokenManager(dict):
         self._token_lifetime_seconds = token_lifetime_seconds
 
     def add(self, ip):
-        token = binascii.hexlify(os.urandom(8))
+        token = os.urandom(8).hex()
         # TODO: Check whether this token already exists
         self[token] = {
             'Expiry': str(time.time() + self._token_lifetime_seconds),

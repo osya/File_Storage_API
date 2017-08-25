@@ -4,10 +4,12 @@ import glob
 import os
 import uuid
 import zipfile
-from StringIO import StringIO
+from io import BytesIO
+
 from bottle import request, HTTPError
 from bottle_sqlite import SQLitePlugin
 from fdsend import send_file
+
 from file_storage import settings
 from file_storage.ipauth import IPAuth
 
@@ -21,7 +23,7 @@ def register():
     if not ip:
         return HTTPError(400, 'IP parameter required')
     token = None
-    for key, value in app.tokens.iteritems():
+    for key, value in app.tokens.items():
         if ip == value['IP']:
             token = key
             break
@@ -62,7 +64,7 @@ def upload(db):
 def download(db):
     key = request.params.dict.get('Key')
     if key:
-        key = str(key[0])
+        key = key[0]
         if not key:
             return HTTPError(400, 'File Key is required')
     else:
@@ -74,13 +76,13 @@ def download(db):
             '*',
             '%s_*.zip' % key)):
         zf = zipfile.ZipFile(name)
-        unp = {name: zf.read(name) for name in zf.namelist()}.items()[0]
+        unp = list({name: zf.read(name) for name in zf.namelist()}.items())[0]
         cur_date = dt.datetime.utcnow()
         db.execute('INSERT INTO access_log (file_key, access_date) VALUES (?, ?)', (key, cur_date))
         db.execute('''UPDATE access_log SET last_access_date =
                         (SELECT MAX(access_date) FROM access_log WHERE file_key = ?)
                       WHERE file_key = ?''', (key, key))
-        return send_file(StringIO(unp[1]), filename=unp[0], attachment=True)
+        return send_file(BytesIO(unp[1]), filename=unp[0], attachment=True)
 
     return HTTPError(400, 'Wrong File Key')
 
