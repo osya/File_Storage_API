@@ -1,6 +1,17 @@
 # File Storage API
 File storage (HTTP storage) API with IP Auth based on Bottle & SQLite
 
+Developed File storage (HTTP storage) API with IP Auth based on Bottle & SQLite. 
+
+In the scope of this task I developed Bottle plugin for IP Auth with decorator 
+`require_auth`, which inherited Bottle decorator `route` and can work with 
+Bottle-SQLite plugin. 
+
+This project uses `multiprocessing` module for removing 
+expired uploaded files in background in separate process. 
+
+For testing PyTest & Webtest used.
+
 ## Installation
 1. Clone project on your machine
 2. ```bash virtualenv env```
