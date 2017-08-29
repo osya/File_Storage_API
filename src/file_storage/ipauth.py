@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import binascii
 import os
 import time
-from bottle import Bottle, HTTPResponse, request, response
 from functools import wraps
 from inspect import formatargspec, getargspec
+
+from bottle import Bottle, HTTPResponse, request, response
 
 
 class TokenManager(dict):

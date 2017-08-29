@@ -53,3 +53,6 @@ if __name__ == "__main__":
     frp.start()
 
     cmds()
+
+# TODO: Currently SQLite database used in dev & prod. Change database for prod
+# TODO: move `static` folder outside of `src`
