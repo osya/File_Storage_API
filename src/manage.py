@@ -1,14 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # from __future__ import unicode_literals
+import datetime as dt
 import os
+import time
+from glob import glob
+from multiprocessing import Process
+from subprocess import call
+
 import click
+
 from bottle import run
 from file_storage import settings
 from file_storage.controllers.api import app
-from multiprocessing import Process
-import time
-import datetime as dt
 
 
 @click.group()
@@ -24,6 +28,8 @@ def cmds():
 @click.option('--debug', default=False,
               help=u'Set application server debug!')
 def runserver(port, ip, debug):
+    frp = Process(target=file_removal, args=(settings.STATIC_PATH,))
+    frp.start()
     click.echo('Start server at: {}:{}'.format(ip, port))
     run(app=app, host=ip, port=port, debug=debug, reloader=debug)
 
@@ -32,6 +38,29 @@ def runserver(port, ip, debug):
 def test():
     import pytest
     return pytest.main([settings.TEST_PATH, '--verbose'])
+
+
+@cmds.command()
+@click.option('-f', '--fix-imports', is_flag=True, default=False, help='Fix imports using isort, before linting')
+def lint(fix_imports):
+    """Lint and check code style with flake8 and isort."""
+
+    skip = ['requirements']
+    root_files = glob('*.py')
+    root_directories = [name for name in next(os.walk('.'))[1] if not name.startswith('.')]
+    files_and_directories = [arg for arg in root_files + root_directories if arg not in skip]
+
+    def execute_tool(description, *args):
+        """Execute a checking tool with its arguments."""
+        command_line = list(args) + files_and_directories
+        print('{}: {}'.format(description, ' '.join(command_line)))
+        rv = call(command_line)
+        if rv is not 0:
+            exit(rv)
+
+    if fix_imports:
+        execute_tool('Fixing import order', 'isort', '-rc')
+    execute_tool('Checking code style', 'flake8')
 
 
 def file_removal(path):
@@ -49,9 +78,6 @@ def file_removal(path):
 
 
 if __name__ == "__main__":
-    frp = Process(target=file_removal, args=(settings.STATIC_PATH,))
-    frp.start()
-
     cmds()
 
 # TODO: Currently SQLite database used in dev & prod. Change database for prod

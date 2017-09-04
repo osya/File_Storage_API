@@ -5,10 +5,10 @@ import datetime as dt
 import os
 
 import pytest
-from webtest import TestApp
 
 from file_storage import settings
 from file_storage.controllers.api import app as api
+from webtest import TestApp
 
 
 @pytest.yield_fixture(scope='function')

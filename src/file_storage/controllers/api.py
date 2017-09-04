@@ -6,10 +6,9 @@ import uuid
 import zipfile
 from io import BytesIO
 
-from bottle import request, HTTPError
+from bottle import HTTPError, request
 from bottle_sqlite import SQLitePlugin
 from fdsend import send_file
-
 from file_storage import settings
 from file_storage.ipauth import IPAuth
 
