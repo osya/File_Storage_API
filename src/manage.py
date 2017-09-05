@@ -20,12 +20,9 @@ def cmds():
 
 
 @cmds.command()
-@click.option('--port', default=os.environ.get('PORT', 8080), type=int,
-              help=u'Set application server port!')
-@click.option('--ip', default='127.0.0.1', type=str,
-              help=u'Set application server ip!')
-@click.option('--debug', default=False,
-              help=u'Set application server debug!')
+@click.option('--port', default=os.environ.get('PORT', 8080), type=int, help='Set application server port!')
+@click.option('--ip', default='127.0.0.1', type=str, help='Set application server ip!')
+@click.option('--debug', default=False, help='Set application server debug!')
 def runserver(port, ip, debug):
     frp = Process(target=file_removal, args=(settings.STATIC_PATH,))
     frp.start()
