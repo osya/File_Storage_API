@@ -45,7 +45,7 @@ def test():
 def lint(fix_imports):
     """Lint and check code style with flake8 and isort."""
 
-    skip = ['requirements']
+    skip = ['requirements', 'env']
     root_files = glob('*.py')
     root_directories = [name for name in next(os.walk('.'))[1] if not name.startswith('.')]
     files_and_directories = [arg for arg in root_files + root_directories if arg not in skip]
@@ -77,7 +77,7 @@ def file_removal(path):
         time.sleep(60)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     cmds()
 
 # TODO: Currently SQLite database used in dev & prod. Change database for prod

@@ -6,9 +6,10 @@ import uuid
 import zipfile
 from io import BytesIO
 
-from bottle import HTTPError, request
 from bottle_sqlite import SQLitePlugin
 from fdsend import send_file
+
+from bottle import HTTPError, request
 from file_storage import settings
 from file_storage.ipauth import IPAuth
 
@@ -43,9 +44,9 @@ def upload(db):
         return HTTPError(400, 'expired_date is required')
 
     save_path = os.path.join(
-            settings.STATIC_PATH,
-            request.params.dict.get('token')[0],
-            str(dt.datetime.utcnow().date()))
+        settings.STATIC_PATH,
+        request.params.dict.get('token')[0],
+        str(dt.datetime.utcnow().date()))
     if not os.path.exists(save_path):
         os.makedirs(save_path)
     key = uuid.uuid4()
@@ -70,17 +71,18 @@ def download(db):
         return HTTPError(400, 'File Key is required')
 
     for name in glob.glob(os.path.join(
-            settings.STATIC_PATH,
-            request.params.dict.get('token')[0],
-            '*',
+        settings.STATIC_PATH,
+        request.params.dict.get('token')[0],
+        '*',
             '%s_*.zip' % key)):
         zf = zipfile.ZipFile(name)
         unp = list({name: zf.read(name) for name in zf.namelist()}.items())[0]
         cur_date = dt.datetime.utcnow()
         db.execute('INSERT INTO access_log (file_key, access_date) VALUES (?, ?)', (key, cur_date))
-        db.execute('''UPDATE access_log SET last_access_date =
-                        (SELECT MAX(access_date) FROM access_log WHERE file_key = ?)
-                      WHERE file_key = ?''', (key, key))
+        db.execute('UPDATE access_log SET last_access_date =\n'
+                   '(SELECT MAX(access_date) FROM access_log WHERE file_key = ?)\n'
+                   'WHERE file_key = ?', (key, key))
+        # TODO: Use SQLAlchemy instead of raw SQL queries
         return send_file(BytesIO(unp[1]), filename=unp[0], attachment=True)
 
     return HTTPError(400, 'Wrong File Key')

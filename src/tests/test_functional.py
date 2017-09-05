@@ -9,7 +9,6 @@ from file_storage import settings
 
 # noinspection PyClassHasNoInit
 class TestRegistering:
-
     def test_register_with_real_ip(self, test_app, test_ip):
         res = test_app.get('/register', {'ip': test_ip[0]})
         assert 200 == res.status_code
@@ -29,12 +28,12 @@ class TestUploadDownloadFile:
     def test_upload_file_with_correct_token(self, test_app, test_ip):
         with open(os.path.join(settings.TEST_PATH, 'README.rst'), 'rb') as f:
             res = test_app.post(
-                    '/upload',
-                    {
-                        'token': test_ip[1],
-                        'expired_date': dt.datetime.utcnow().date()
-                    },
-                    upload_files=[('upload', 'README.rst', f.read())])
+                '/upload',
+                {
+                    'token': test_ip[1],
+                    'expired_date': dt.datetime.utcnow().date()
+                },
+                upload_files=[('upload', 'README.rst', f.read())])
             assert 200 == res.status_code
 
     def test_download_file_with_correct_token(self, test_app, test_ip, file_key):
@@ -45,7 +44,7 @@ class TestUploadDownloadFile:
         for header in res.headerlist:
             if type(header) is tuple:
                 for item in header:
-                    m = re.search(r'''^.*filename="(.*)"$''', item)
+                    m = re.search(r'^.*filename="(.*)"$', item)
                     if m:
                         filename = m.group(1)
                         break
