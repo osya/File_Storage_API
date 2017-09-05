@@ -8,13 +8,13 @@ import pytest
 from webtest import TestApp
 
 from file_storage import settings
-from file_storage.controllers.api import app as api
+from file_storage.controllers.api import app as _app
 
 
 @pytest.yield_fixture(scope='function')
 def app():
     """An application for the tests."""
-    yield api
+    yield _app
 
 
 @pytest.fixture(scope='function')

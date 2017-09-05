@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# from __future__ import unicode_literals
 import datetime as dt
 import os
 import time
@@ -30,6 +29,8 @@ def cmds():
 def runserver(port, ip, debug):
     frp = Process(target=file_removal, args=(settings.STATIC_PATH,))
     frp.start()
+    # TODO: Investigate ResourceWarning: unclosed <socket.socket fd=860, family=AddressFamily.AF_INET,
+    # type=SocketKind.SOCK_STREAM, proto=0, laddr=('127.0.0.1', 11652), raddr=('127.0.0.1', 11642)>
     click.echo('Start server at: {}:{}'.format(ip, port))
     run(app=app, host=ip, port=port, debug=debug, reloader=debug)
 
@@ -81,4 +82,3 @@ if __name__ == '__main__':
     cmds()
 
 # TODO: Currently SQLite database used in dev & prod. Change database for prod
-# TODO: move `static` folder outside of `src`
