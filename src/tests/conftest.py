@@ -32,7 +32,7 @@ def test_ip(app):
 
 @pytest.fixture
 def file_key(test_app, test_ip):
-    with open(os.path.join(settings.TEST_PATH, 'README.rst'), 'rb') as f:
+    with open(os.path.join(os.path.dirname(os.path.dirname(settings.TEST_PATH)), 'README.md'), 'rb') as f:
         res = test_app.post(
             '/upload',
             {

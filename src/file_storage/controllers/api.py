@@ -78,10 +78,10 @@ def download(db):
         zf = zipfile.ZipFile(name)
         unp = list({name: zf.read(name) for name in zf.namelist()}.items())[0]
         cur_date = dt.datetime.utcnow()
-        db.execute('INSERT INTO access_log (file_key, access_date) VALUES (?, ?)', (key, cur_date))
-        db.execute('UPDATE access_log SET last_access_date =\n'
-                   '(SELECT MAX(access_date) FROM access_log WHERE file_key = ?)\n'
-                   'WHERE file_key = ?', (key, key))
+        # db.execute('INSERT INTO access_log (file_key, access_date) VALUES (?, ?)', (key, cur_date))
+        # db.execute('UPDATE access_log SET last_access_date =\n'
+        #            '(SELECT MAX(access_date) FROM access_log WHERE file_key = ?)\n'
+        #            'WHERE file_key = ?', (key, key))
         # TODO: Use SQLAlchemy instead of raw SQL queries
         return send_file(BytesIO(unp[1]), filename=unp[0], attachment=True)
 
