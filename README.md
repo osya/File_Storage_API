@@ -1,4 +1,9 @@
 # File Storage API
+
+.. image:: https://travis-ci.org/osya/File_Storage_API.svg
+    :target: https://travis-ci.org/osya/File_Storage_API
+    :alt: Build status
+
 File storage (HTTP storage) API with IP Auth based on Bottle & SQLite
 
 Developed File storage (HTTP storage) API with IP Auth based on Bottle & SQLite. 
