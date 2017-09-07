@@ -8,37 +8,23 @@ from file_storage import settings
 
 
 # noinspection PyClassHasNoInit
-class TestRegistering:
-    def test_register_with_real_ip(self, test_app, test_ip):
-        res = test_app.get('/register', {'ip': test_ip[0]})
-        assert 200 == res.status_code
-        token = res.json['Token']
-        assert token is not None
-
-    def test_register_with_empty_ip(self, test_app):
-        res = test_app.get('/register', {'ip': ''}, expect_errors=True)
-        assert 400 == res.status_code
-
-        res = test_app.get('/register', expect_errors=True)
-        assert 400 == res.status_code
-
-
-# noinspection PyClassHasNoInit
-class TestUploadDownloadFile:
-    def test_upload_file_with_correct_token(self, test_app, test_ip):
+# It is one class for all tests because it is needed to use single instance of Bottle app
+class TestFunctional:
+    def test_upload_file_with_correct_token(self, test_app):
         with open(os.path.join(os.path.dirname(os.path.dirname(settings.TEST_PATH)), 'README.md'), 'rb') as f:
             res = test_app.post(
                 '/upload',
                 {
-                    'token': test_ip[1],
+                    'token': test_app.token,
                     'expired_date': dt.datetime.utcnow().date()
                 },
                 upload_files=[('upload', 'README.md', f.read())])
             assert 200 == res.status_code
 
-    def test_download_file_with_correct_token(self, test_app, test_ip, file_key):
-        res = test_app.get('/download', {'token': test_ip[1], 'Key': file_key})
+    def test_download_file_with_correct_token(self, test_app, file_key):
+        res = test_app.get('/download', {'token': test_app.token, 'Key': file_key})
         assert 200 == res.status_code
+        assert res.body
 
         filename = None
         for header in res.headerlist:
@@ -53,31 +39,27 @@ class TestUploadDownloadFile:
 
         assert filename
 
-        if filename:
-            file_path = os.path.join(settings.TEST_PATH, filename)
-            with open(file_path, 'wb') as out_file:
-                out_file.write(res.body)
-
-    def test_download_file_with_wrong_key(self, test_app, test_ip):
-        res = test_app.get('/download', {'token': test_ip[1], 'Key': ''}, expect_errors=True)
+    def test_download_file_with_wrong_key(self, test_app):
+        res = test_app.get('/download', {'token': test_app.token, 'Key': ''}, expect_errors=True)
         assert 400 == res.status_code
-        res = test_app.get('/download', {'token': test_ip[1]}, expect_errors=True)
+        res = test_app.get('/download', {'token': test_app.token}, expect_errors=True)
         assert 400 == res.status_code
 
-    def test_upload_file_with_wrong_expired_date(self, test_app, test_ip):
-        res = test_app.post('/upload', {'token': test_ip[1], 'expired_date': ''}, expect_errors=True)
+    def test_upload_file_with_wrong_expired_date(self, test_app):
+        res = test_app.post('/upload', {'token': test_app.token, 'expired_date': ''}, expect_errors=True)
         assert 400 == res.status_code
-        res = test_app.post('/upload', {'token': test_ip[1]}, expect_errors=True)
+        res = test_app.post('/upload', {'token': test_app.token}, expect_errors=True)
         assert 400 == res.status_code
 
-    # def test_upload_file_with_expired_token(self, test_app, test_ip):
-    #     delay = int(float(test_app.app.tokens[test_ip[1]]['Expiry']) - time.time() + 0.5)
+    # def test_upload_file_with_expired_token(self, test_app):
+    #     import time
+    #     delay = int(float(test_app.app.tokens[test_app.token]['Expiry']) - time.time() + 0.5)
     #     time.sleep(delay)
-    #     res = test_app.post('/upload', {'token': test_ip[1]}, expect_errors=True)
-    #     assert 403 == res.status_code
+    #     res = test_app.post('/upload', {'token': test_app.token}, expect_errors=True)
+    #     assert 401 == res.status_code
 
     def test_upload_file_with_wrong_token(self, test_app):
         res = test_app.post('/upload', {'token': ''}, expect_errors=True)
-        assert 403 == res.status_code
+        assert 401 == res.status_code
         res = test_app.post('/upload', expect_errors=True)
         assert 403 == res.status_code

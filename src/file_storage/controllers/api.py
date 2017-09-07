@@ -6,33 +6,28 @@ import uuid
 import zipfile
 from io import BytesIO
 
-from bottle_sqlite import SQLitePlugin
 from fdsend import send_file
 
-from bottle import HTTPError, request
+from bottle import Bottle, HTTPError, request
 from file_storage import settings
-from file_storage.ipauth import IPAuth
 
-app = IPAuth()
-app.install(SQLitePlugin(dbfile=os.path.abspath(os.path.join(settings.PROJECT_PATH, '..', settings.SQLITE_FILE_NAME))))
+api = Bottle()
 
 
-@app.route('/register')
+@api.route('/register')
 def register():
-    ip = request.query.ip
-    if not ip:
-        return HTTPError(400, 'IP parameter required')
+    ip = request.remote_addr
     token = None
-    for key, value in app.tokens.items():
+    for key, value in api.tokens.items():
         if ip == value['IP']:
             token = key
             break
     if not token:
-        token = app.tokens.add(ip)
+        token = api.tokens.add(ip)
     return {'Token': token}
 
 
-@app.require_auth('/upload', method='POST')
+@api.post('/upload', auth='ipauth')
 def upload(db):
     f = request.files.get('upload')
     expired_date = request.params.dict.get('expired_date')
@@ -60,7 +55,7 @@ def upload(db):
     return {'Key': str(key)}
 
 
-@app.require_auth('/download', method='GET')
+@api.get('/download', auth='ipauth')
 def download(db):
     key = request.params.dict.get('Key')
     if key:
@@ -79,15 +74,15 @@ def download(db):
         unp = list({name: zf.read(name) for name in zf.namelist()}.items())[0]
         cur_date = dt.datetime.utcnow()
         db.execute('INSERT INTO access_log (file_key, access_date) VALUES (?, ?)', (key, cur_date))
-        # db.execute('UPDATE access_log SET last_access_date =\n'
-        #            '(SELECT MAX(access_date) FROM access_log WHERE file_key = ?)\n'
-        #            'WHERE file_key = ?', (key, key))
+        db.execute('UPDATE access_log SET last_access_date =\n'
+                   '(SELECT MAX(access_date) FROM access_log WHERE file_key = ?)\n'
+                   'WHERE file_key = ?', (key, key))
         # TODO: Use SQLAlchemy instead of raw SQL queries
         return send_file(BytesIO(unp[1]), filename=unp[0], attachment=True)
 
     return HTTPError(400, 'Wrong File Key')
 
 
-@app.route('/')
+@api.route('/')
 def index():
     return ''

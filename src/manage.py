@@ -8,10 +8,12 @@ from multiprocessing import Process
 from subprocess import call
 
 import click
+from bottle_sqlite import SQLitePlugin
 
 from bottle import run
 from file_storage import settings
-from file_storage.controllers.api import app
+from file_storage.bottle_ipauth import IPAuthPlugin
+from file_storage.controllers.api import api
 
 
 @click.group()
@@ -29,7 +31,10 @@ def runserver(port, ip, debug):
     # TODO: Investigate ResourceWarning: unclosed <socket.socket fd=860, family=AddressFamily.AF_INET,
     # type=SocketKind.SOCK_STREAM, proto=0, laddr=('127.0.0.1', 11652), raddr=('127.0.0.1', 11642)>
     click.echo('Start server at: {}:{}'.format(ip, port))
-    run(app=app, host=ip, port=port, debug=debug, reloader=debug)
+    api.install(
+        SQLitePlugin(dbfile=os.path.abspath(os.path.join(settings.PROJECT_PATH, '..', settings.SQLITE_FILE_NAME))))
+    api.install(IPAuthPlugin())
+    run(app=api, host=ip, port=port, debug=debug, reloader=debug)
 
 
 @cmds.command()
