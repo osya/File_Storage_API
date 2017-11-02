@@ -4,6 +4,7 @@
 # Testing
 webtest==2.0.28
 pytest==3.2.1
+coveralls~=1.2.0
 
 click==6.7
 

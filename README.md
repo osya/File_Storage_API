@@ -1,6 +1,6 @@
 # File Storage API
 
-[![Build Status](https://travis-ci.org/osya/File_Storage_API.svg)](https://travis-ci.org/osya/File_Storage_API)
+[![Build Status](https://travis-ci.org/osya/File_Storage_API.svg)](https://travis-ci.org/osya/File_Storage_API) [![Coverage Status](https://coveralls.io/repos/github/osya/File_Storage_API/badge.svg?branch=master)](https://coveralls.io/github/osya/File_Storage_API?branch=master)
 
 File storage (HTTP storage) API with IP Auth based on Bottle & SQLite
 

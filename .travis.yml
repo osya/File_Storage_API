@@ -4,5 +4,10 @@ language: python
 python:
   - 3.6
 install: pip install -r requirements/dev.txt
-#before_script: python src/manage.py lint
-script: python src/manage.py test
+before_script:
+  - cd src
+script:
+  - python manage.py lint
+  - coverage run --source=. manage.py test
+after_script:
+  - coveralls
