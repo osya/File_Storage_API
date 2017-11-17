@@ -9,6 +9,7 @@ from subprocess import call
 
 import click
 from bottle_sqlite import SQLitePlugin
+from decouple import config
 
 from bottle import run
 from file_storage import settings
@@ -22,7 +23,7 @@ def cmds():
 
 
 @cmds.command()
-@click.option('--port', default=os.environ.get('PORT', 8080), type=int, help='Set application server port!')
+@click.option('--port', default=config('PORT', default=8080, cast=int), type=int, help='Set application server port!')
 @click.option('--ip', default='127.0.0.1', type=str, help='Set application server ip!')
 @click.option('--debug', default=False, help='Set application server debug!')
 def runserver(port, ip, debug):
